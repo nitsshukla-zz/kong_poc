@@ -1,0 +1,74 @@
+# Metadata fields start with an underscore (_)
+# Fields that do not start with an underscore represent Kong entities and attributes
+
+# Matches Kong minimum version that supports the format
+_format_version: "1.1"
+
+# YAML supports comments, but JSON doesn't. Our format
+# supports the "_comment" field in the top-level and within entities
+_comment: "general comment about the file"
+
+# The top-level and entities also support the "_ignore" field,
+# which keeps an array of entries that are ignored by Kong.
+# You can use it to store your additional metadata.
+_ignore:
+- my_own_data: 123
+- foo: bar
+  kong_ignores: "all of this"
+
+# Each Kong entity (core entity or custom entity introduced by a plugin)
+# can be listed in the top-level as an array of objects:
+services:
+- name: my-service
+  url: http://mockbin.org
+  # Entities will be able to store tags as metadata
+  tags: [desktop, example]
+  # Entities that have a foreign-key relationship can be nested:
+  routes:
+  - name: example-route
+    # Each entity has its own, optional, set of tags
+    tags: [desktop, something_else]
+    hosts:
+    - example.test
+    # Plugins applied to example-route:
+    plugins:
+    - name: basic-auth
+  # Plugins applied to my-service:
+  plugins:
+  - name: key-auth
+
+routes:
+- name: my-route
+  # Relationships can also be specified between top-level entities,
+  # either by name or by id
+  service: my-service
+  hosts: ["hello.com"]
+
+consumers:
+- username: Frodo
+  # Custom entities from plugin can also be specified
+  # If they specify a foreign-key relationshp, they can also be nested
+  keyauth_credentials:
+  - key: my-key
+  plugins:
+  - name: rate-limiting
+    _comment: "these are default rate-limits for user Frodo"
+    config:
+      second: 5
+      hour: 10000
+
+# When an entity has multiple foreign-key relationships
+# (e.g. a plugin matching on both consumer and service)
+# it must be specified as a top-level entity, and not through
+# nesting.
+plugins:
+- name: rate-limiting
+  consumer: Frodo
+  service: my-service
+  _comment: "Frodo is extra limited when using my-service"
+  config:
+    hour: 100
+  # tags are for your organization only and have no meaning for Kong:
+  tags:
+  - extra_limits
+  - my_tag
