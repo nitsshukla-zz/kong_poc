@@ -1,0 +1,31 @@
+create service
+ curl -i -X POST   --url http://localhost:8001/services/   --data 'name=example-service'   --data 'url=http://mockbin.org'
+
+create route
+ curl -i -X POST   --url http://localhost:8001/services/auth-service/routes --data 'paths=/docs'
+
+redirect
+  curl -i -X GET   --url http://localhost:8000/docs/bin/5ca54639-6dd6-48b8-8db9-4f4b4e95e45a/log   --header 'Host: example.com'
+
+apply rate-limiting plugin
+curl http://127.0.0.1:8001/services/example-service/plugins/      -d "name=rate-limiting"      -d "config.minute=4"
+
+tried and got response
+HTTP/1.1 429 Too Many Requests
+Date: Mon, 05 Aug 2019 06:02:10 GMT
+Content-Type: application/json; charset=utf-8
+Connection: keep-alive
+Content-Length: 37
+X-RateLimit-Limit-minute: 4
+X-RateLimit-Remaining-minute: 0
+Server: kong/1.3.0rc1
+
+
+curl http://127.0.0.1:8001/consumers?username=Jason
+
+
+
+Adding auth
+ curl http://127.0.0.1:8001/services/auth-service/plugins -d "name=key-auth"      -d "config.key_names=apikey"
+
+ 
